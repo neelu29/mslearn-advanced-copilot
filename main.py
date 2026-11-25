@@ -3,6 +3,7 @@ from os.path import dirname, abspath, join
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi import FastAPI, HTTPException
 
 
 current_dir = dirname(abspath(__file__))
@@ -31,11 +32,19 @@ def countries():
     return list(data.keys())
 
 
+@app.get('/countries/{country}')
+def country_cities(country: str):
+    if country not in data:
+        raise HTTPException(status_code=404, detail="Country not found")
+    return list(data[country].keys())
+
+
 @app.get('/countries/{country}/{city}/{month}')
 def monthly_average(country: str, city: str, month: str):
     return data[country][city][month]
 
 # Generate the OpenAPI schema:
+
 openapi_schema = app.openapi()
 with open(join(wellknown_path, "openapi.json"), "w") as f:
     json.dump(openapi_schema, f)
